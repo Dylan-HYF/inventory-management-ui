@@ -7,19 +7,65 @@ import {
     Typography,
     Paper,
     Avatar,
-    CssBaseline
+    CssBaseline,
+    Alert,
+    CircularProgress
 } from '@mui/material';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
+import { authService } from '../services/authService';
 
 const LoginPage = () => {
-    const [username, setUsername] = useState('');
-    const [password, setPassword] = useState('');
+    const [formData, setFormData] = useState({
+        username: '',
+        password: ''
+    });
+    const [error, setError] = useState('');
+    const [success, setSuccess] = useState('');
+    const [loading, setLoading] = useState(false);
 
-    const handleSubmit = (event) => {
-        event.preventDefault();
-        // TODO: Add your authentication logic here
-        console.log('Login Attempt:', { username, password });
+    const handleChange = (e) => {
+        setFormData({
+            ...formData,
+            [e.target.name]: e.target.value
+        });
+        // Clear error when user starts typing
+        setError('');
     };
+
+    const handleSubmit = async (event) => {
+        event.preventDefault();
+        setError('');
+        setSuccess('');
+        setLoading(true);
+
+        try {
+            const response = await authService.login(
+                formData.username, 
+                formData.password
+            );
+            
+            setSuccess(response.message || 'Login successful!');
+            console.log('Login successful:', response);
+            
+            // Redirect to dashboard after successful login
+            setTimeout(() => {
+                window.location.href = '/dashboard'; // Change this to your dashboard route
+            }, 1500);
+            
+        } catch (err) {
+            setError(typeof err === 'string' ? err : 'Login failed. Please try again.');
+            console.error('Login error:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Check if user is already logged in
+    React.useEffect(() => {
+        if (authService.isAuthenticated()) {
+            window.location.href = '/dashboard';
+        }
+    }, []);
 
     return (
         <Container component="main" maxWidth="xs">
@@ -46,8 +92,21 @@ const LoginPage = () => {
                         <LockOutlinedIcon />
                     </Avatar>
                     <Typography component="h1" variant="h5">
-                        Login
+                        Sign In
                     </Typography>
+                    
+                    {error && (
+                        <Alert severity="error" sx={{ mt: 2, width: '100%' }}>
+                            {error}
+                        </Alert>
+                    )}
+                    
+                    {success && (
+                        <Alert severity="success" sx={{ mt: 2, width: '100%' }}>
+                            {success}
+                        </Alert>
+                    )}
+                    
                     <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1, width: '100%' }}>
                         <TextField
                             margin="normal"
@@ -58,8 +117,10 @@ const LoginPage = () => {
                             name="username"
                             autoComplete="username"
                             autoFocus
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
+                            value={formData.username}
+                            onChange={handleChange}
+                            disabled={loading}
+                            error={!!error}
                         />
                         <TextField
                             margin="normal"
@@ -70,17 +131,26 @@ const LoginPage = () => {
                             type="password"
                             id="password"
                             autoComplete="current-password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
+                            value={formData.password}
+                            onChange={handleChange}
+                            disabled={loading}
+                            error={!!error}
                         />
                         <Button
                             type="submit"
                             fullWidth
                             variant="contained"
                             sx={{ mt: 3, mb: 2 }}
+                            disabled={loading}
                         >
-                            Sign In
+                            {loading ? <CircularProgress size={24} /> : 'Sign In'}
                         </Button>
+                        
+                        <Box sx={{ textAlign: 'center' }}>
+                            <Typography variant="body2">
+                                Demo credentials: admin / admin123
+                            </Typography>
+                        </Box>
                     </Box>
                 </Paper>
             </Box>

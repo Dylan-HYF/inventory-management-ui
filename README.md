@@ -1,3 +1,60 @@
+# Inventory-Track Pro
+
+A full-stack inventory management system developed for the CST8319 Software Development course at Algonquin College. The application helps businesses manage products, track stock levels, and monitor inventory activities efficiently through a centralized dashboard.
+
+---
+
+## Features
+
+- Dashboard displaying key inventory metrics (Total SKUs, Low Stock, Out of Stock, etc.)
+- Product management interface
+- Inventory management (add stock, adjust stock levels)
+- Low stock alerts
+- Recent activity tracking
+- Quick action panel for common operations
+- Authentication structure (in progress)
+
+---
+
+## System Architecture
+
+The application follows a layered architecture:
+
+- **Frontend (Presentation Layer):**
+  - React.js with Material UI
+- **Backend (Application Layer):**
+  - Spring Boot (REST APIs)
+- **Database (Data Layer):**
+  - MySQL
+
+The frontend communicates with backend services using REST APIs, and data is stored in the MySQL database.
+
+---
+
+## Project Structure
+src/
+├── components/ # Reusable UI components
+│ ├── dialogs/ # Forms (Add Product, Adjust Inventory, etc.)
+│ └── common/ # Shared components (loader, snackbar)
+├── pages/ # Main views (Dashboard, Inventory, Login)
+├── services/ # API communication layer
+├── hooks/ # Custom React hooks
+├── App.js # Main application component
+└── index.js # Entry point
+
+
+---
+
+## 🛠️ Technologies Used
+
+- React.js
+- Material UI
+- JavaScript (ES6+)
+- Spring Boot (Backend Design)
+- MySQL (Database Design)
+- Git & GitHub (Version Control)
+
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
@@ -68,3 +125,8 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/d
 ### `npm run build` fails to minify
 
 This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+
+
+License
+
+This project is developed for academic purposes as part of the CST8319 Software Development course at Algonquin College.

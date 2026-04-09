@@ -1,6 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Grid, AppBar, Toolbar, Typography, Button, Box } from '@mui/material';
-import { Inventory } from '@mui/icons-material';
+import { 
+    Container, Grid, AppBar, Toolbar, Typography, Button, Box, 
+    Avatar, useTheme, alpha 
+} from '@mui/material';
+import { 
+    Inventory, Warning, RemoveCircle, LocalShipping, 
+    Receipt, Logout 
+} from '@mui/icons-material';
 import { authService } from '../services/authService';
 import { useDashboardData } from '../hooks/useDashboardData';
 import LoadingSpinner from "../components/common/LoadingSpinner";
@@ -21,6 +27,7 @@ const Dashboard = () => {
     const { loading, metrics, inventoryValue, lowStockAlerts, recentActivities, suppliers, refreshData } = useDashboardData();
     const [openDialog, setOpenDialog] = useState(null);
     const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+    const theme = useTheme();
 
     // Redirect if not authenticated
     useEffect(() => {
@@ -72,62 +79,91 @@ const Dashboard = () => {
 
     return (
         <>
-            <AppBar position="static">
+            <AppBar 
+                position="sticky" 
+                elevation={0}
+                sx={{ 
+                    bgcolor: 'background.paper',
+                    borderBottom: 1,
+                    borderColor: 'divider',
+                    color: 'text.primary'
+                }}
+            >
                 <Toolbar>
-                    <Inventory sx={{ mr: 2 }} />
-                    <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+                    <Avatar 
+                        sx={{ 
+                            mr: 2, 
+                            bgcolor: 'primary.main',
+                            width: 40,
+                            height: 40
+                        }}
+                    >
+                        <Inventory />
+                    </Avatar>
+                    <Typography variant="h6" component="div" sx={{ flexGrow: 1, fontWeight: 600 }}>
                         Inventory Management Dashboard
                     </Typography>
-                    <Typography variant="body2" sx={{ mr: 2 }}>
+                    <Typography variant="body2" sx={{ mr: 2, color: 'text.secondary' }}>
                         Welcome, {user?.username}
                     </Typography>
-                    <Button color="inherit" onClick={handleLogout}>
+                    <Button 
+                        color="inherit" 
+                        onClick={handleLogout}
+                        startIcon={<Logout />}
+                        sx={{ 
+                            color: 'text.secondary',
+                            '&:hover': {
+                                bgcolor: alpha(theme.palette.error.main, 0.04),
+                                color: 'error.main'
+                            }
+                        }}
+                    >
                         Logout
                     </Button>
                 </Toolbar>
             </AppBar>
 
             <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-                {/* Key Metrics Cards */}
+                {/* Key Metrics Cards - Using MUI's semantic colors */}
                 <Grid container spacing={3} sx={{ mb: 4 }}>
                     <Grid item xs={12} sm={6} md={2.4}>
                         <MetricCard 
                             title="Total SKUs" 
                             value={metrics.totalSKUs} 
                             icon={<Inventory />} 
-                            color="#1976d2" 
+                            color="primary"
                         />
                     </Grid>
                     <Grid item xs={12} sm={6} md={2.4}>
                         <MetricCard 
                             title="Low Stock Items" 
                             value={metrics.lowStockItems} 
-                            icon={<Inventory />} 
-                            color="#ed6c02" 
+                            icon={<Warning />} 
+                            color="warning"
                         />
                     </Grid>
                     <Grid item xs={12} sm={6} md={2.4}>
                         <MetricCard 
                             title="Out of Stock" 
                             value={metrics.outOfStock} 
-                            icon={<Inventory />} 
-                            color="#d32f2f" 
+                            icon={<RemoveCircle />} 
+                            color="error"
                         />
                     </Grid>
                     <Grid item xs={12} sm={6} md={2.4}>
                         <MetricCard 
                             title="Incoming Shipments" 
                             value={metrics.incomingShipments} 
-                            icon={<Inventory />} 
-                            color="#2e7d32" 
+                            icon={<LocalShipping />} 
+                            color="success"
                         />
                     </Grid>
                     <Grid item xs={12} sm={6} md={2.4}>
                         <MetricCard 
                             title="Pending Orders" 
                             value={metrics.pendingOrders} 
-                            icon={<Inventory />} 
-                            color="#9c27b0" 
+                            icon={<Receipt />} 
+                            color="secondary"
                         />
                     </Grid>
                 </Grid>

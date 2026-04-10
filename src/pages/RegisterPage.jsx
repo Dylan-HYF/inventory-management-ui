@@ -12,61 +12,98 @@ import {
     CircularProgress,
     Link
 } from '@mui/material';
-import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
+import PersonAddOutlinedIcon from '@mui/icons-material/PersonAddOutlined';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import { authService } from '../services/authService';
 
-const LoginPage = () => {
+const RegisterPage = () => {
     const navigate = useNavigate();
     const [formData, setFormData] = useState({
         username: '',
-        password: ''
+        email: '',
+        password: '',
+        confirmPassword: ''
     });
-    const [error, setError] = useState('');
+    const [errors, setErrors] = useState({});
+    const [submitError, setSubmitError] = useState('');
     const [success, setSuccess] = useState('');
     const [loading, setLoading] = useState(false);
+
+    const validateForm = () => {
+        const newErrors = {};
+
+        if (formData.username.length < 3) {
+            newErrors.username = 'Username must be at least 3 characters';
+        } else if (formData.username.length > 20) {
+            newErrors.username = 'Username must be less than 20 characters';
+        }
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(formData.email)) {
+            newErrors.email = 'Please enter a valid email address';
+        }
+
+        if (formData.password.length < 6) {
+            newErrors.password = 'Password must be at least 6 characters';
+        }
+
+        if (formData.password !== formData.confirmPassword) {
+            newErrors.confirmPassword = 'Passwords do not match';
+        }
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
 
     const handleChange = (e) => {
         setFormData({
             ...formData,
             [e.target.name]: e.target.value
         });
-        setError('');
+        if (errors[e.target.name]) {
+            setErrors({
+                ...errors,
+                [e.target.name]: ''
+            });
+        }
+        setSubmitError('');
     };
 
     const handleSubmit = async (event) => {
         event.preventDefault();
-        setError('');
+        setSubmitError('');
         setSuccess('');
+        
+        if (!validateForm()) {
+            return;
+        }
+
         setLoading(true);
 
         try {
-            const response = await authService.login(
-                formData.username, 
-                formData.password
-            );
+            const userData = {
+                username: formData.username,
+                email: formData.email,
+                password: formData.password
+                // Note: roles intentionally omitted - backend assigns ROLE_USER
+            };
+
+            const response = await authService.register(userData);
             
-            // Updated: Handle new response structure
-            // Response now contains: token, type, id, username, email, roles
-            setSuccess(`Welcome ${response.username}! Redirecting...`);
-            console.log('Login successful:', response);
+            setSuccess(response.message || 'Registration successful! Redirecting to login...');
             
-            // Redirect to dashboard after successful login
             setTimeout(() => {
-                navigate('/dashboard');
-            }, 1500);
+                navigate('/login');
+            }, 2000);
             
         } catch (err) {
-            // Updated: Handle error response structure
-            const errorMessage = err.message || 'Invalid username or password';
-            setError(errorMessage);
-            console.error('Login error:', err);
+            setSubmitError(err.message || 'Registration failed. Please try again.');
+            console.error('Registration error:', err);
         } finally {
             setLoading(false);
         }
     };
 
-    // Check if user is already logged in
     React.useEffect(() => {
         if (authService.isAuthenticated()) {
             navigate('/dashboard');
@@ -94,16 +131,16 @@ const LoginPage = () => {
                         width: '100%'
                     }}
                 >
-                    <Avatar sx={{ m: 1, bgcolor: 'primary.main' }}>
-                        <LockOutlinedIcon />
+                    <Avatar sx={{ m: 1, bgcolor: 'secondary.main' }}>
+                        <PersonAddOutlinedIcon />
                     </Avatar>
                     <Typography component="h1" variant="h5">
-                        Sign In
+                        Sign Up
                     </Typography>
                     
-                    {error && (
+                    {submitError && (
                         <Alert severity="error" sx={{ mt: 2, width: '100%' }}>
-                            {error}
+                            {submitError}
                         </Alert>
                     )}
                     
@@ -126,7 +163,22 @@ const LoginPage = () => {
                             value={formData.username}
                             onChange={handleChange}
                             disabled={loading}
-                            error={!!error}
+                            error={!!errors.username}
+                            helperText={errors.username}
+                        />
+                        <TextField
+                            margin="normal"
+                            required
+                            fullWidth
+                            id="email"
+                            label="Email Address"
+                            name="email"
+                            autoComplete="email"
+                            value={formData.email}
+                            onChange={handleChange}
+                            disabled={loading}
+                            error={!!errors.email}
+                            helperText={errors.email}
                         />
                         <TextField
                             margin="normal"
@@ -136,11 +188,27 @@ const LoginPage = () => {
                             label="Password"
                             type="password"
                             id="password"
-                            autoComplete="current-password"
+                            autoComplete="new-password"
                             value={formData.password}
                             onChange={handleChange}
                             disabled={loading}
-                            error={!!error}
+                            error={!!errors.password}
+                            helperText={errors.password}
+                        />
+                        <TextField
+                            margin="normal"
+                            required
+                            fullWidth
+                            name="confirmPassword"
+                            label="Confirm Password"
+                            type="password"
+                            id="confirmPassword"
+                            autoComplete="new-password"
+                            value={formData.confirmPassword}
+                            onChange={handleChange}
+                            disabled={loading}
+                            error={!!errors.confirmPassword}
+                            helperText={errors.confirmPassword}
                         />
                         <Button
                             type="submit"
@@ -149,14 +217,14 @@ const LoginPage = () => {
                             sx={{ mt: 3, mb: 2 }}
                             disabled={loading}
                         >
-                            {loading ? <CircularProgress size={24} /> : 'Sign In'}
+                            {loading ? <CircularProgress size={24} /> : 'Sign Up'}
                         </Button>
                         
                         <Box sx={{ textAlign: 'center', mt: 2 }}>
                             <Typography variant="body2" color="text.secondary">
-                                Don't have an account?{' '}
-                                <Link component={RouterLink} to="/register" underline="hover">
-                                    Sign up here
+                                Already have an account?{' '}
+                                <Link component={RouterLink} to="/login" underline="hover">
+                                    Sign in here
                                 </Link>
                             </Typography>
                         </Box>
@@ -167,4 +235,4 @@ const LoginPage = () => {
     );
 };
 
-export default LoginPage;
+export default RegisterPage;

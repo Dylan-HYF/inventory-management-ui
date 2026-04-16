@@ -4,18 +4,18 @@ import { Add, Inventory, LocalShipping, Adjust, CheckCircle, History } from '@mu
 
 const ActivityIcon = ({ type }) => {
     const theme = useTheme();
-    
+
     const getIconConfig = () => {
         switch (type) {
-            case 'ADD_STOCK': 
+            case 'ADD_STOCK':
                 return { icon: <Add />, color: theme.palette.success.main, bgOpacity: 0.1 };
-            case 'NEW_PRODUCT': 
+            case 'NEW_PRODUCT':
                 return { icon: <Inventory />, color: theme.palette.primary.main, bgOpacity: 0.1 };
-            case 'TRANSFER': 
+            case 'TRANSFER':
                 return { icon: <LocalShipping />, color: theme.palette.info.main, bgOpacity: 0.1 };
-            case 'ADJUSTMENT': 
+            case 'ADJUSTMENT':
                 return { icon: <Adjust />, color: theme.palette.warning.main, bgOpacity: 0.1 };
-            default: 
+            default:
                 return { icon: <CheckCircle />, color: theme.palette.action.active, bgOpacity: 0.1 };
         }
     };
@@ -23,7 +23,7 @@ const ActivityIcon = ({ type }) => {
     const config = getIconConfig();
 
     return (
-        <Avatar sx={{ 
+        <Avatar sx={{
             bgcolor: alpha(config.color, config.bgOpacity),
             color: config.color,
             width: 40,
@@ -36,10 +36,10 @@ const ActivityIcon = ({ type }) => {
 
 const ActivityItem = ({ activity }) => {
     const theme = useTheme();
-    
+
     return (
-        <ListItem 
-            sx={{ 
+        <ListItem
+            sx={{
                 mb: 1,
                 borderRadius: 1,
                 transition: 'all 0.2s ease-in-out',
@@ -60,8 +60,8 @@ const ActivityItem = ({ activity }) => {
                 }
                 secondary={
                     <Typography variant="body2" color="text.secondary">
-                        {activity.itemName} 
-                        {activity.quantity ? ` (Qty: ${activity.quantity})` : ''} 
+                        {activity.itemName}
+                        {activity.quantity ? ` (Qty: ${activity.quantity})` : ''}
                         {' '}— by {activity.performedBy}
                     </Typography>
                 }
@@ -75,22 +75,22 @@ const ActivityItem = ({ activity }) => {
 
 const RecentActivity = ({ activities }) => {
     const theme = useTheme();
-    
+
     return (
-        <Paper sx={{ 
+        <Paper sx={{
             p: 3,
             backgroundColor: theme.palette.background.paper,
             borderLeft: `4px solid ${theme.palette.info.main}`,
-            height: '100%',
+            minHeight: 240,
         }}>
             <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
                 <Typography variant="h6" color="text.primary" fontWeight="bold">
                     Recent Activity
                 </Typography>
                 {activities.length > 0 && (
-                    <Box sx={{ 
-                        display: 'flex', 
-                        alignItems: 'center', 
+                    <Box sx={{
+                        display: 'flex',
+                        alignItems: 'center',
                         gap: 0.5,
                         color: 'text.secondary',
                     }}>
@@ -102,10 +102,10 @@ const RecentActivity = ({ activities }) => {
                 )}
             </Box>
             <Divider sx={{ mb: 2 }} />
-            
+
             {activities.length > 0 ? (
-                <List sx={{ 
-                    maxHeight: 500, 
+                <List sx={{
+                    maxHeight: 500,
                     overflow: 'auto',
                     '&::-webkit-scrollbar': {
                         width: '8px',
@@ -132,9 +132,9 @@ const RecentActivity = ({ activities }) => {
                     ))}
                 </List>
             ) : (
-                <Box 
-                    sx={{ 
-                        py: 8, 
+                <Box
+                    sx={{
+                        py: 8,
                         textAlign: 'center',
                         display: 'flex',
                         flexDirection: 'column',
@@ -142,11 +142,11 @@ const RecentActivity = ({ activities }) => {
                         gap: 1,
                     }}
                 >
-                    <Box 
-                        sx={{ 
-                            width: 60, 
-                            height: 60, 
-                            borderRadius: '50%', 
+                    <Box
+                        sx={{
+                            width: 60,
+                            height: 60,
+                            borderRadius: '50%',
                             bgcolor: alpha(theme.palette.info.main, 0.1),
                             display: 'flex',
                             alignItems: 'center',

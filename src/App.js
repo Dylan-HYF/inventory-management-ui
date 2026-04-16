@@ -4,6 +4,7 @@ import LoginPage from "./pages/LoginPage";
 import RegisterPage from './pages/RegisterPage';
 import Dashboard from './pages/Dashboard';
 import { authService } from './services/authService';
+import SKUListPage from './pages/SKUListPage';
 
 const PrivateRoute = ({ children }) => {
   return authService.isAuthenticated() ? children : <Navigate to="/login" />;
@@ -15,15 +16,16 @@ const App = () => {
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
-        <Route 
-          path="/dashboard" 
+        <Route
+          path="/dashboard"
           element={
             <PrivateRoute>
               <Dashboard />
             </PrivateRoute>
-          } 
+          }
         />
         <Route path="/" element={<Navigate to="/dashboard" />} />
+        <Route path="/skus" element={<SKUListPage />} />
       </Routes>
     </BrowserRouter>
   );

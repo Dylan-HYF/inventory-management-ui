@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { 
-    Container, Grid, AppBar, Toolbar, Typography, Button, Box, 
-    Avatar, useTheme, alpha 
+import {
+    Container, Grid, AppBar, Toolbar, Typography, Button, Box,
+    Avatar, useTheme, alpha
 } from '@mui/material';
-import { 
-    Inventory, Warning, RemoveCircle, LocalShipping, 
-    Receipt, Logout 
+import {
+    Inventory, Warning, RemoveCircle, LocalShipping,
+    Receipt, Logout
 } from '@mui/icons-material';
 import { authService } from '../services/authService';
 import { useDashboardData } from '../hooks/useDashboardData';
@@ -21,6 +21,7 @@ import ReceiveStockDialog from '../components/dashboard/dialogs/RecieveStockDial
 import CreatePODialog from '../components/dashboard/dialogs/CreatePODialog';
 import AdjustInventoryDialog from '../components/dashboard/dialogs/AdjustInventoryDialog';
 import { inventoryAPI } from '../services/inventoryApi';
+import { useNavigate } from 'react-router-dom';
 
 const Dashboard = () => {
     const user = authService.getCurrentUser();
@@ -28,6 +29,8 @@ const Dashboard = () => {
     const [openDialog, setOpenDialog] = useState(null);
     const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
     const theme = useTheme();
+    const navigate = useNavigate();
+    const { data } = useDashboardData();
 
     // Redirect if not authenticated
     useEffect(() => {
@@ -79,10 +82,10 @@ const Dashboard = () => {
 
     return (
         <>
-            <AppBar 
-                position="sticky" 
+            <AppBar
+                position="sticky"
                 elevation={0}
-                sx={{ 
+                sx={{
                     bgcolor: 'background.paper',
                     borderBottom: 1,
                     borderColor: 'divider',
@@ -90,9 +93,9 @@ const Dashboard = () => {
                 }}
             >
                 <Toolbar>
-                    <Avatar 
-                        sx={{ 
-                            mr: 2, 
+                    <Avatar
+                        sx={{
+                            mr: 2,
                             bgcolor: 'primary.main',
                             width: 40,
                             height: 40
@@ -106,11 +109,11 @@ const Dashboard = () => {
                     <Typography variant="body2" sx={{ mr: 2, color: 'text.secondary' }}>
                         Welcome, {user?.username}
                     </Typography>
-                    <Button 
-                        color="inherit" 
+                    <Button
+                        color="inherit"
                         onClick={handleLogout}
                         startIcon={<Logout />}
-                        sx={{ 
+                        sx={{
                             color: 'text.secondary',
                             '&:hover': {
                                 bgcolor: alpha(theme.palette.error.main, 0.04),
@@ -126,43 +129,43 @@ const Dashboard = () => {
             <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
                 {/* Key Metrics Cards - Using MUI's semantic colors */}
                 <Grid container spacing={3} sx={{ mb: 4 }}>
-                    <Grid item xs={12} sm={6} md={2.4}>
-                        <MetricCard 
-                            title="Total SKUs" 
-                            value={metrics.totalSKUs} 
-                            icon={<Inventory />} 
+                    <Grid item xs={12} sm={6} md={2.4} onClick={() => navigate('/skus')} style={{ cursor: 'pointer' }}>
+                        <MetricCard
+                            title="Total SKUs"
+                            value={metrics.totalSKUs}
+                            icon={<Inventory />}
                             color="primary"
                         />
                     </Grid>
                     <Grid item xs={12} sm={6} md={2.4}>
-                        <MetricCard 
-                            title="Low Stock Items" 
-                            value={metrics.lowStockItems} 
-                            icon={<Warning />} 
+                        <MetricCard
+                            title="Low Stock Items"
+                            value={metrics.lowStockItems}
+                            icon={<Warning />}
                             color="warning"
                         />
                     </Grid>
                     <Grid item xs={12} sm={6} md={2.4}>
-                        <MetricCard 
-                            title="Out of Stock" 
-                            value={metrics.outOfStock} 
-                            icon={<RemoveCircle />} 
+                        <MetricCard
+                            title="Out of Stock"
+                            value={metrics.outOfStock}
+                            icon={<RemoveCircle />}
                             color="error"
                         />
                     </Grid>
                     <Grid item xs={12} sm={6} md={2.4}>
-                        <MetricCard 
-                            title="Incoming Shipments" 
-                            value={metrics.incomingShipments} 
-                            icon={<LocalShipping />} 
+                        <MetricCard
+                            title="Incoming Shipments"
+                            value={metrics.incomingShipments}
+                            icon={<LocalShipping />}
                             color="success"
                         />
                     </Grid>
                     <Grid item xs={12} sm={6} md={2.4}>
-                        <MetricCard 
-                            title="Pending Orders" 
-                            value={metrics.pendingOrders} 
-                            icon={<Receipt />} 
+                        <MetricCard
+                            title="Pending Orders"
+                            value={metrics.pendingOrders}
+                            icon={<Receipt />}
                             color="secondary"
                         />
                     </Grid>
@@ -171,9 +174,9 @@ const Dashboard = () => {
                 {/* Inventory Value Summary & Quick Actions */}
                 <Grid container spacing={3} sx={{ mb: 4 }}>
                     <Grid item xs={12} md={6}>
-                        <InventoryValueSummary 
-                            cost={inventoryValue.cost} 
-                            retail={inventoryValue.retail} 
+                        <InventoryValueSummary
+                            cost={inventoryValue.cost}
+                            retail={inventoryValue.retail}
                         />
                     </Grid>
                     <Grid item xs={12} md={6}>
@@ -193,34 +196,34 @@ const Dashboard = () => {
             </Container>
 
             {/* Dialogs */}
-            <AddProductDialog 
-                open={openDialog === 'Add Product'} 
-                onClose={handleDialogClose} 
-                onSubmit={(data) => handleFormSubmit(data, 'Add Product')} 
+            <AddProductDialog
+                open={openDialog === 'Add Product'}
+                onClose={handleDialogClose}
+                onSubmit={(data) => handleFormSubmit(data, 'Add Product')}
             />
-            <ReceiveStockDialog 
-                open={openDialog === 'Receive Stock'} 
-                onClose={handleDialogClose} 
-                onSubmit={(data) => handleFormSubmit(data, 'Receive Stock')} 
+            <ReceiveStockDialog
+                open={openDialog === 'Receive Stock'}
+                onClose={handleDialogClose}
+                onSubmit={(data) => handleFormSubmit(data, 'Receive Stock')}
             />
-            <CreatePODialog 
-                open={openDialog === 'Create PO'} 
-                onClose={handleDialogClose} 
+            <CreatePODialog
+                open={openDialog === 'Create PO'}
+                onClose={handleDialogClose}
                 suppliers={suppliers}
-                onSubmit={(data) => handleFormSubmit(data, 'Create PO')} 
+                onSubmit={(data) => handleFormSubmit(data, 'Create PO')}
             />
-            <AdjustInventoryDialog 
-                open={openDialog === 'Adjust Inventory'} 
-                onClose={handleDialogClose} 
-                onSubmit={(data) => handleFormSubmit(data, 'Adjust Inventory')} 
+            <AdjustInventoryDialog
+                open={openDialog === 'Adjust Inventory'}
+                onClose={handleDialogClose}
+                onSubmit={(data) => handleFormSubmit(data, 'Adjust Inventory')}
             />
 
             {/* Notification */}
-            <NotificationSnackbar 
-                open={snackbar.open} 
-                message={snackbar.message} 
-                severity={snackbar.severity} 
-                onClose={() => setSnackbar({ ...snackbar, open: false })} 
+            <NotificationSnackbar
+                open={snackbar.open}
+                message={snackbar.message}
+                severity={snackbar.severity}
+                onClose={() => setSnackbar({ ...snackbar, open: false })}
             />
         </>
     );

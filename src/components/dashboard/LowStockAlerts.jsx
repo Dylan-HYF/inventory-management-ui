@@ -4,7 +4,7 @@ import { Warning, Error } from '@mui/icons-material';
 
 const LowStockAlertItem = ({ item }) => {
     const theme = useTheme();
-    
+
     const getStatusColors = () => {
         if (item.status === 'critical') {
             return {
@@ -21,20 +21,20 @@ const LowStockAlertItem = ({ item }) => {
             stockColor: theme.palette.warning.dark,
         };
     };
-    
+
     const colors = getStatusColors();
-    
+
     return (
-        <Paper sx={{ 
-            p: 2, 
-            mb: 1.5, 
+        <Paper sx={{
+            p: 2,
+            mb: 1.5,
             bgcolor: colors.bgColor,
             borderLeft: `4px solid ${colors.borderColor}`,
             transition: 'all 0.2s ease-in-out',
-            '&:hover': { 
+            '&:hover': {
                 transform: 'translateX(4px)',
                 boxShadow: theme.shadows[2],
-            } 
+            }
         }}>
             <Box display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={1}>
                 <Box flex={1}>
@@ -63,7 +63,7 @@ const LowStockAlertItem = ({ item }) => {
                     label={item.status === 'critical' ? 'CRITICAL' : 'LOW STOCK'}
                     color={item.status === 'critical' ? 'error' : 'warning'}
                     size="small"
-                    sx={{ 
+                    sx={{
                         fontWeight: 600,
                         '& .MuiChip-label': { px: 1.5 }
                     }}
@@ -75,20 +75,20 @@ const LowStockAlertItem = ({ item }) => {
 
 const LowStockAlerts = ({ alerts }) => {
     const theme = useTheme();
-    
+
     return (
-        <Paper sx={{ 
+        <Paper sx={{
             p: 3,
             backgroundColor: theme.palette.background.paper,
             borderLeft: `4px solid ${theme.palette.warning.main}`,
-            height: '100%',
+            minHeight: 240,
         }}>
             <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
                 <Typography variant="h6" color="text.primary" fontWeight="bold">
                     Low Stock Alerts
                 </Typography>
                 {alerts.length > 0 && (
-                    <Chip 
+                    <Chip
                         label={`${alerts.length} item${alerts.length !== 1 ? 's' : ''}`}
                         color="warning"
                         size="small"
@@ -97,15 +97,15 @@ const LowStockAlerts = ({ alerts }) => {
                 )}
             </Box>
             <Divider sx={{ mb: 2 }} />
-            
+
             {alerts.length > 0 ? (
                 <Box sx={{ maxHeight: 500, overflow: 'auto', pr: 0.5 }}>
                     {alerts.map(alert => <LowStockAlertItem key={alert.id} item={alert} />)}
                 </Box>
             ) : (
-                <Box 
-                    sx={{ 
-                        py: 8, 
+                <Box
+                    sx={{
+                        py: 8,
                         textAlign: 'center',
                         display: 'flex',
                         flexDirection: 'column',
@@ -113,11 +113,11 @@ const LowStockAlerts = ({ alerts }) => {
                         gap: 1,
                     }}
                 >
-                    <Box 
-                        sx={{ 
-                            width: 60, 
-                            height: 60, 
-                            borderRadius: '50%', 
+                    <Box
+                        sx={{
+                            width: 60,
+                            height: 60,
+                            borderRadius: '50%',
                             bgcolor: alpha(theme.palette.success.main, 0.1),
                             display: 'flex',
                             alignItems: 'center',

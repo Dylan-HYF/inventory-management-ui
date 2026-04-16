@@ -8,25 +8,25 @@ const InventoryValueSummary = ({ cost, retail }) => {
     const profitMargin = (profit / retail) * 100;
 
     return (
-        <Paper sx={{ 
+        <Paper sx={{
             p: 3,
             backgroundColor: theme.palette.background.paper,
             borderLeft: `4px solid ${theme.palette.primary.main}`,
-            height: '100%',
+            minHeight: 240,
         }}>
             <Typography variant="h6" color="text.primary" gutterBottom fontWeight="bold">
                 Inventory Value Summary
             </Typography>
             <Divider sx={{ mb: 3 }} />
-            
+
             <Box display="flex" justifyContent="space-around" alignItems="center" flexWrap="wrap" gap={2}>
                 <Box textAlign="center" flex={1}>
                     <Typography variant="body2" color="text.secondary" gutterBottom>
                         Cost Value
                     </Typography>
-                    <Typography 
-                        variant="h4" 
-                        sx={{ 
+                    <Typography
+                        variant="h4"
+                        sx={{
                             color: theme.palette.text.primary,
                             fontWeight: 600,
                         }}
@@ -34,11 +34,11 @@ const InventoryValueSummary = ({ cost, retail }) => {
                         ${cost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </Typography>
                 </Box>
-                
-                <Box 
-                    sx={{ 
-                        display: 'flex', 
-                        justifyContent: 'center', 
+
+                <Box
+                    sx={{
+                        display: 'flex',
+                        justifyContent: 'center',
                         alignItems: 'center',
                         width: 60,
                         height: 60,
@@ -49,14 +49,14 @@ const InventoryValueSummary = ({ cost, retail }) => {
                 >
                     <TrendingUp sx={{ fontSize: 32 }} />
                 </Box>
-                
+
                 <Box textAlign="center" flex={1}>
                     <Typography variant="body2" color="text.secondary" gutterBottom>
                         Retail Value
                     </Typography>
-                    <Typography 
-                        variant="h4" 
-                        sx={{ 
+                    <Typography
+                        variant="h4"
+                        sx={{
                             color: theme.palette.success.main,
                             fontWeight: 600,
                         }}
@@ -65,19 +65,19 @@ const InventoryValueSummary = ({ cost, retail }) => {
                     </Typography>
                 </Box>
             </Box>
-            
-            <Box sx={{ 
-                mt: 3, 
-                pt: 2, 
+
+            <Box sx={{
+                mt: 3,
+                pt: 2,
                 textAlign: 'center',
                 borderTop: `1px solid ${theme.palette.divider}`,
             }}>
                 <Typography variant="body1" color="text.secondary" gutterBottom>
                     Potential Profit
                 </Typography>
-                <Typography 
-                    variant="h5" 
-                    sx={{ 
+                <Typography
+                    variant="h5"
+                    sx={{
                         color: profit >= 0 ? theme.palette.success.main : theme.palette.error.main,
                         fontWeight: 600,
                     }}

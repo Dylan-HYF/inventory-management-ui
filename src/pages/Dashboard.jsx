@@ -30,7 +30,6 @@ const Dashboard = () => {
     const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
     const theme = useTheme();
     const navigate = useNavigate();
-    const { data } = useDashboardData();
 
     // Redirect if not authenticated
     useEffect(() => {
@@ -153,7 +152,7 @@ const Dashboard = () => {
                             color="error"
                         />
                     </Grid>
-                    <Grid item xs={12} sm={6} md={2.4}>
+                    <Grid item xs={12} sm={6} md={2.4} onClick={() => navigate('/shipments')} style={{ cursor: 'pointer' }}>
                         <MetricCard
                             title="Incoming Shipments"
                             value={metrics.incomingShipments}

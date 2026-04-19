@@ -5,6 +5,8 @@ import RegisterPage from './pages/RegisterPage';
 import Dashboard from './pages/Dashboard';
 import { authService } from './services/authService';
 import SKUListPage from './pages/SKUListPage';
+import StockDetailsPage from './pages/StockDetailsPage';
+import ShipmentDetailsPage from './pages/ShipmentDetailsPage';
 
 const PrivateRoute = ({ children }) => {
   return authService.isAuthenticated() ? children : <Navigate to="/login" />;
@@ -26,6 +28,9 @@ const App = () => {
         />
         <Route path="/" element={<Navigate to="/dashboard" />} />
         <Route path="/skus" element={<SKUListPage />} />
+        <Route path="/skus/:sku" element={<StockDetailsPage />} />
+        <Route path="/shipments" element={<ShipmentDetailsPage />} />
+        <Route path="/shipments/:shipmentId" element={<ShipmentDetailsPage />} />
       </Routes>
     </BrowserRouter>
   );

@@ -13,8 +13,9 @@ import {
     Button
 } from '@mui/material';
 import AdjustIcon from '@mui/icons-material/Edit';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import { useNavigate } from 'react-router-dom';
 
-import LoadingSpinner from '../components/common/LoadingSpinner';
 import AdjustInventoryDialog from '../components/dashboard/dialogs/AdjustInventoryDialog';
 
 const SKU_DATA = [
@@ -38,6 +39,7 @@ const getStatusColor = (status) => {
 const SKUListPage = () => {
     const [selectedSku, setSelectedSku] = useState(null);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const navigate = useNavigate();
 
     const handleAdjustStock = (item) => {
         setSelectedSku(item);
@@ -87,16 +89,27 @@ const SKUListPage = () => {
                                     />
                                 </TableCell>
                                 <TableCell align="center">
-                                    <Button
-                                        variant="contained"
-                                        size="small"
-                                        color="primary"
-                                        startIcon={<AdjustIcon />}
-                                        onClick={() => handleAdjustStock(item)}
-                                        disableElevation
-                                    >
-                                        Adjust
-                                    </Button>
+                                    <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center', flexWrap: 'wrap' }}>
+                                        <Button
+                                            variant="outlined"
+                                            size="small"
+                                            color="primary"
+                                            startIcon={<VisibilityIcon />}
+                                            onClick={() => navigate(`/skus/${item.sku}`)}
+                                        >
+                                            Details
+                                        </Button>
+                                        <Button
+                                            variant="contained"
+                                            size="small"
+                                            color="primary"
+                                            startIcon={<AdjustIcon />}
+                                            onClick={() => handleAdjustStock(item)}
+                                            disableElevation
+                                        >
+                                            Adjust
+                                        </Button>
+                                    </Box>
                                 </TableCell>
                             </TableRow>
                         ))}

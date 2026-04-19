@@ -22,6 +22,8 @@ inventoryApi.interceptors.request.use(
 export const inventoryAPI = {
     // Products
     getProducts: () => inventoryApi.get('/products'),
+    getProductById: (id) => inventoryApi.get(`/products/${id}`),
+    getProductBySku: (sku) => inventoryApi.get(`/products/sku/${sku}`),
     addProduct: (productData) => inventoryApi.post('/products', productData),
     
     // Inventory
@@ -30,6 +32,7 @@ export const inventoryAPI = {
     
     // Orders
     getIncomingShipments: () => inventoryApi.get('/purchase-orders?status=SHIPPED'),
+    getShipmentById: (id) => inventoryApi.get(`/purchase-orders/${id}`),
     getPendingOrders: () => inventoryApi.get('/sales-orders?status=PENDING'),
     createPurchaseOrder: (poData) => inventoryApi.post('/purchase-orders', poData),
     

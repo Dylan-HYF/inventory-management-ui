@@ -1,8 +1,6 @@
 import axios from 'axios';
 
 const API_URL = 'http://localhost:8080/api/auth';
-const DEMO_USERS_KEY = 'demoUsers';
-const DEMO_TOKEN_PREFIX = 'demo-token';
 
 // Create axios instance with default config
 const api = axios.create({
@@ -24,33 +22,6 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-const getDemoUsers = () => {
-  return JSON.parse(localStorage.getItem(DEMO_USERS_KEY) || '[]');
-};
-
-const saveDemoUsers = (users) => {
-  localStorage.setItem(DEMO_USERS_KEY, JSON.stringify(users));
-};
-
-const createDemoSession = (user) => {
-  const token = `${DEMO_TOKEN_PREFIX}-${user.username}`;
-  localStorage.setItem('token', token);
-  localStorage.setItem('username', user.username);
-  return {
-    token,
-    type: 'Bearer',
-    id: user.id,
-    username: user.username,
-    email: user.email,
-    roles: ['ROLE_USER'],
-    demoMode: true
-  };
-};
-
-const isNetworkError = (error) => {
-  return !error.response;
-};
-
 export const authService = {
   // Login user
   login: async (username, password) => {
@@ -62,18 +33,6 @@ export const authService = {
       }
       return response.data;
     } catch (error) {
-      if (isNetworkError(error)) {
-        const demoUser = getDemoUsers().find(
-          user => user.username === username && user.password === password
-        );
-
-        if (demoUser) {
-          return createDemoSession(demoUser);
-        }
-
-        throw new Error('Backend is unavailable. Register a local demo account first, then sign in.');
-      }
-
       throw error.response?.data || error.message;
     }
   },
@@ -88,31 +47,6 @@ export const authService = {
       }
       return response.data;
     } catch (error) {
-      if (isNetworkError(error)) {
-        const users = getDemoUsers();
-        const existingUser = users.find(user => user.username === userData.username || user.email === userData.email);
-
-        if (existingUser) {
-          throw new Error('This username or email already exists in local demo mode.');
-        }
-
-        const demoUser = {
-          id: Date.now(),
-          username: userData.username,
-          email: userData.email,
-          password: userData.password
-        };
-
-        saveDemoUsers([...users, demoUser]);
-
-        return {
-          message: 'Registration successful in local demo mode. Redirecting to login...',
-          username: demoUser.username,
-          email: demoUser.email,
-          demoMode: true
-        };
-      }
-
       throw error.response?.data || error.message;
     }
   },
@@ -140,10 +74,6 @@ export const authService = {
     try {
       const token = localStorage.getItem('token');
       if (!token) return false;
-
-      if (token.startsWith(DEMO_TOKEN_PREFIX)) {
-        return true;
-      }
       
       const response = await api.get('/validate');
       return response.status === 200;

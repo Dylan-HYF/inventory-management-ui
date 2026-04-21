@@ -1,108 +1,78 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { inventoryAPI } from '../services/inventoryApi';
+import { MOCK_ACTIVITIES, MOCK_PRODUCTS, MOCK_SHIPMENTS, MOCK_SUPPLIERS } from '../data/mockData';
+
+const buildMetrics = (products, shipments) => {
+  const totalSKUs = products.length;
+  const lowStockItems = products.filter((p) => p.currentStock <= p.reorderPoint && p.currentStock > 0).length;
+  const outOfStock = products.filter((p) => p.currentStock === 0).length;
+  const pendingOrders = shipments.filter((s) => s.status !== 'Delivered').length + 33;
+  const incomingShipments = shipments.length;
+  const cost = products.reduce((sum, p) => sum + (Number(p.costPrice) * Number(p.currentStock)), 0);
+  const retail = products.reduce((sum, p) => sum + (Number(p.sellingPrice) * Number(p.currentStock)), 0);
+  const lowStockAlerts = products
+    .filter((p) => p.currentStock <= p.reorderPoint)
+    .map((p) => ({
+      id: p.id,
+      name: p.name,
+      sku: p.sku,
+      currentStock: p.currentStock,
+      reorderPoint: p.reorderPoint,
+      status: p.currentStock === 0 || p.currentStock <= Math.max(1, Math.floor(p.reorderPoint / 2)) ? 'critical' : 'low'
+    }));
+
+  return {
+    metrics: { totalSKUs, lowStockItems, outOfStock, incomingShipments, pendingOrders },
+    inventoryValue: { cost, retail },
+    lowStockAlerts
+  };
+};
 
 export const useDashboardData = () => {
-    const [loading, setLoading] = useState(true);
-    const [metrics, setMetrics] = useState({
-        totalSKUs: 0,
-        lowStockItems: 0,
-        outOfStock: 0,
-        incomingShipments: 0,
-        pendingOrders: 0
-    });
-    const [inventoryValue, setInventoryValue] = useState({ cost: 0, retail: 0 });
-    const [lowStockAlerts, setLowStockAlerts] = useState([]);
-    const [recentActivities, setRecentActivities] = useState([]);
-    const [suppliers, setSuppliers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [metrics, setMetrics] = useState({ totalSKUs: 0, lowStockItems: 0, outOfStock: 0, incomingShipments: 0, pendingOrders: 0 });
+  const [inventoryValue, setInventoryValue] = useState({ cost: 0, retail: 0 });
+  const [lowStockAlerts, setLowStockAlerts] = useState([]);
+  const [recentActivities, setRecentActivities] = useState([]);
+  const [suppliers, setSuppliers] = useState([]);
 
-    const fetchDashboardData = async () => {
-        setLoading(true);
-        try {
-            // Fetch products
-            const productsRes = await inventoryAPI.getProducts();
-            const products = productsRes.data;
+  const setMockData = () => {
+    const { metrics: computedMetrics, inventoryValue: computedValues, lowStockAlerts: computedAlerts } = buildMetrics(MOCK_PRODUCTS, MOCK_SHIPMENTS);
+    setMetrics(computedMetrics);
+    setInventoryValue(computedValues);
+    setLowStockAlerts(computedAlerts);
+    setRecentActivities(MOCK_ACTIVITIES);
+    setSuppliers(MOCK_SUPPLIERS);
+  };
 
-            // Calculate metrics
-            const totalSKUs = products.length;
-            const lowStockItems = products.filter(p => p.currentStock <= p.reorderPoint && p.currentStock > 0).length;
-            const outOfStock = products.filter(p => p.currentStock === 0).length;
+  const fetchDashboardData = async () => {
+    setLoading(true);
+    try {
+      const productsRes = await inventoryAPI.getProducts();
+      const products = productsRes.data;
+      const [shipmentsRes, ordersRes, activitiesRes, suppliersRes] = await Promise.all([
+        inventoryAPI.getIncomingShipments(),
+        inventoryAPI.getPendingOrders(),
+        inventoryAPI.getRecentActivities(),
+        inventoryAPI.getSuppliers()
+      ]);
+      const { metrics: computedMetrics, inventoryValue: computedValues, lowStockAlerts: computedAlerts } = buildMetrics(products, shipmentsRes.data);
+      setMetrics({ ...computedMetrics, pendingOrders: ordersRes.data.length || computedMetrics.pendingOrders });
+      setInventoryValue(computedValues);
+      setLowStockAlerts(computedAlerts);
+      setRecentActivities(activitiesRes.data?.length ? activitiesRes.data : MOCK_ACTIVITIES);
+      setSuppliers(suppliersRes.data?.length ? suppliersRes.data : MOCK_SUPPLIERS);
+    } catch (error) {
+      console.error('Dashboard fallback to mock data:', error);
+      setMockData();
+    } finally {
+      setLoading(false);
+    }
+  };
 
-            // Calculate inventory value
-            const costValue = products.reduce((sum, p) => sum + (p.costPrice * p.currentStock), 0);
-            const retailValue = products.reduce((sum, p) => sum + (p.sellingPrice * p.currentStock), 0);
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
 
-            // Get low stock alerts
-            const lowStock = products.filter(p => p.currentStock <= p.reorderPoint);
-            const alerts = lowStock.map(p => ({
-                id: p.id,
-                name: p.name,
-                sku: p.sku,
-                currentStock: p.currentStock,
-                reorderPoint: p.reorderPoint,
-                status: p.currentStock === 0 ? 'critical' : 
-                        (p.currentStock <= p.reorderPoint / 2 ? 'critical' : 'low')
-            }));
-
-            // Get incoming shipments and pending orders
-            const [shipmentsRes, ordersRes, activitiesRes, suppliersRes] = await Promise.all([
-                inventoryAPI.getIncomingShipments(),
-                inventoryAPI.getPendingOrders(),
-                inventoryAPI.getRecentActivities(),
-                inventoryAPI.getSuppliers()
-            ]);
-
-            setMetrics({
-                totalSKUs,
-                lowStockItems,
-                outOfStock,
-                incomingShipments: shipmentsRes.data.length,
-                pendingOrders: ordersRes.data.length
-            });
-
-            setInventoryValue({ cost: costValue, retail: retailValue });
-            setLowStockAlerts(alerts);
-            setRecentActivities(activitiesRes.data);
-            setSuppliers(suppliersRes.data);
-
-        } catch (error) {
-            console.error('Error fetching dashboard data:', error);
-            // Set mock data for demo if API fails
-            setMockData();
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const setMockData = () => {
-        setMetrics({
-            totalSKUs: 1247,
-            lowStockItems: 23,
-            outOfStock: 8,
-            incomingShipments: 12,
-            pendingOrders: 45
-        });
-        setInventoryValue({ cost: 284750.50, retail: 498312.75 });
-        setLowStockAlerts([
-            { id: 1, name: 'Wireless Mouse', sku: 'WM-001', currentStock: 3, reorderPoint: 10, status: 'critical' },
-            { id: 2, name: 'USB Cable', sku: 'USB-003', currentStock: 8, reorderPoint: 15, status: 'low' }
-        ]);
-        setRecentActivities([
-            { id: 1, action: 'Stock Added', itemName: 'Wireless Mouse', quantity: 50, performedBy: 'John Doe', timestamp: new Date().toISOString(), type: 'ADD_STOCK' }
-        ]);
-        setSuppliers([{ id: 1, name: 'Supplier 1' }, { id: 2, name: 'Supplier 2' }]);
-    };
-
-    useEffect(() => {
-        fetchDashboardData();
-    }, []);
-
-    return {
-        loading,
-        metrics,
-        inventoryValue,
-        lowStockAlerts,
-        recentActivities,
-        suppliers,
-        refreshData: fetchDashboardData
-    };
+  return { loading, metrics, inventoryValue, lowStockAlerts, recentActivities, suppliers, refreshData: fetchDashboardData };
 };

@@ -1,170 +1,113 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-    Box,
-    Button,
-    Container,
-    TextField,
-    Typography,
-    Paper,
-    Avatar,
-    CssBaseline,
-    Alert,
-    CircularProgress,
-    Link
+  Alert,
+  Box,
+  Button,
+  CircularProgress,
+  Container,
+  Link,
+  Paper,
+  Stack,
+  TextField,
+  Typography
 } from '@mui/material';
-import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
-import { useNavigate, Link as RouterLink } from 'react-router-dom';
+import { Inventory2Rounded, ArrowForwardRounded } from '@mui/icons-material';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { authService } from '../services/authService';
 
 const LoginPage = () => {
-    const navigate = useNavigate();
-    const [formData, setFormData] = useState({
-        username: '',
-        password: ''
-    });
-    const [error, setError] = useState('');
-    const [success, setSuccess] = useState('');
-    const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState({ username: '', password: '' });
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [loading, setLoading] = useState(false);
 
-    const handleChange = (e) => {
-        setFormData({
-            ...formData,
-            [e.target.name]: e.target.value
-        });
-        setError('');
-    };
+  useEffect(() => {
+    if (authService.isAuthenticated()) navigate('/dashboard');
+  }, [navigate]);
 
-    const handleSubmit = async (event) => {
-        event.preventDefault();
-        setError('');
-        setSuccess('');
-        setLoading(true);
+  const handleChange = (event) => {
+    setFormData((prev) => ({ ...prev, [event.target.name]: event.target.value }));
+    setError('');
+  };
 
-        try {
-            const response = await authService.login(
-                formData.username, 
-                formData.password
-            );
-            
-            // Updated: Handle new response structure
-            // Response now contains: token, type, id, username, email, roles
-            setSuccess(`Welcome ${response.username}! Redirecting...`);
-            console.log('Login successful:', response);
-            
-            // Redirect to dashboard after successful login
-            setTimeout(() => {
-                navigate('/dashboard');
-            }, 1500);
-            
-        } catch (err) {
-            // Updated: Handle error response structure
-            const errorMessage = err.message || 'Invalid username or password';
-            setError(errorMessage);
-            console.error('Login error:', err);
-        } finally {
-            setLoading(false);
-        }
-    };
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setLoading(true);
+    setError('');
+    setSuccess('');
+    try {
+      const response = await authService.login(formData.username, formData.password);
+      setSuccess(`Welcome back, ${response.username || formData.username}. Redirecting...`);
+      setTimeout(() => navigate('/dashboard'), 900);
+    } catch (err) {
+      setError(err.message || 'Login failed. Please check your credentials.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    // Check if user is already logged in
-    React.useEffect(() => {
-        if (authService.isAuthenticated()) {
-            navigate('/dashboard');
-        }
-    }, [navigate]);
+  return (
+    <Box sx={{ minHeight: '100vh', display: 'grid', placeItems: 'center', px: 2 }}>
+      <Container maxWidth="lg">
+        <Paper sx={{ overflow: 'hidden', borderRadius: 6 }}>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1.1fr 0.9fr' } }}>
+            <Box sx={{ p: { xs: 4, md: 6 }, background: 'linear-gradient(135deg, rgba(59,130,246,0.12), rgba(139,92,246,0.12))' }}>
+              <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 4 }}>
+                <Box sx={{ width: 50, height: 50, borderRadius: 3, bgcolor: 'primary.main', color: 'white', display: 'grid', placeItems: 'center' }}>
+                  <Inventory2Rounded />
+                </Box>
+                <Box>
+                  <Typography variant="h5">Inventory Hub</Typography>
+                  <Typography color="text.secondary">Modern stock control workspace</Typography>
+                </Box>
+              </Stack>
 
-    return (
-        <Container component="main" maxWidth="xs">
-            <CssBaseline />
-            <Box
-                sx={{
-                    marginTop: 8,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                }}
-            >
-                <Paper
-                    elevation={3}
-                    sx={{
-                        padding: 4,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        width: '100%'
-                    }}
-                >
-                    <Avatar sx={{ m: 1, bgcolor: 'primary.main' }}>
-                        <LockOutlinedIcon />
-                    </Avatar>
-                    <Typography component="h1" variant="h5">
-                        Sign In
-                    </Typography>
-                    
-                    {error && (
-                        <Alert severity="error" sx={{ mt: 2, width: '100%' }}>
-                            {error}
-                        </Alert>
-                    )}
-                    
-                    {success && (
-                        <Alert severity="success" sx={{ mt: 2, width: '100%' }}>
-                            {success}
-                        </Alert>
-                    )}
-                    
-                    <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1, width: '100%' }}>
-                        <TextField
-                            margin="normal"
-                            required
-                            fullWidth
-                            id="username"
-                            label="Username"
-                            name="username"
-                            autoComplete="username"
-                            autoFocus
-                            value={formData.username}
-                            onChange={handleChange}
-                            disabled={loading}
-                            error={!!error}
-                        />
-                        <TextField
-                            margin="normal"
-                            required
-                            fullWidth
-                            name="password"
-                            label="Password"
-                            type="password"
-                            id="password"
-                            autoComplete="current-password"
-                            value={formData.password}
-                            onChange={handleChange}
-                            disabled={loading}
-                            error={!!error}
-                        />
-                        <Button
-                            type="submit"
-                            fullWidth
-                            variant="contained"
-                            sx={{ mt: 3, mb: 2 }}
-                            disabled={loading}
-                        >
-                            {loading ? <CircularProgress size={24} /> : 'Sign In'}
-                        </Button>
-                        
-                        <Box sx={{ textAlign: 'center', mt: 2 }}>
-                            <Typography variant="body2" color="text.secondary">
-                                Don't have an account?{' '}
-                                <Link component={RouterLink} to="/register" underline="hover">
-                                    Sign up here
-                                </Link>
-                            </Typography>
-                        </Box>
-                    </Box>
-                </Paper>
+              <Typography variant="h3" sx={{ mb: 2, fontSize: { xs: '2rem', md: '2.8rem' } }}>
+                Manage stock faster with a cleaner dashboard.
+              </Typography>
+              <Typography color="text.secondary" sx={{ maxWidth: 560, mb: 4 }}>
+                Track products, watch low-stock alerts, review incoming shipments, and manage actions from one place.
+              </Typography>
+
+              <Stack spacing={2}>
+                {[
+                  'Low-stock and out-of-stock visibility',
+                  'Quick actions for receiving and adjusting inventory',
+                  'Clean admin layout with dark mode support'
+                ].map((item) => (
+                  <Paper key={item} variant="outlined" sx={{ p: 2.5, borderRadius: 4, bgcolor: 'background.paper' }}>
+                    <Typography fontWeight={600}>{item}</Typography>
+                  </Paper>
+                ))}
+              </Stack>
             </Box>
-        </Container>
-    );
+
+            <Box sx={{ p: { xs: 4, md: 6 }, display: 'grid', alignContent: 'center' }}>
+              <Typography variant="h4" sx={{ mb: 1 }}>Sign in</Typography>
+              <Typography color="text.secondary" sx={{ mb: 3 }}>Use your account to continue to the dashboard.</Typography>
+
+              {error ? <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert> : null}
+              {success ? <Alert severity="success" sx={{ mb: 2 }}>{success}</Alert> : null}
+
+              <Box component="form" onSubmit={handleSubmit}>
+                <TextField label="Username" name="username" fullWidth margin="normal" autoFocus value={formData.username} onChange={handleChange} disabled={loading} />
+                <TextField label="Password" name="password" type="password" fullWidth margin="normal" value={formData.password} onChange={handleChange} disabled={loading} />
+                <Button type="submit" fullWidth variant="contained" size="large" endIcon={loading ? null : <ArrowForwardRounded />} sx={{ mt: 3, height: 52 }} disabled={loading}>
+                  {loading ? <CircularProgress size={24} color="inherit" /> : 'Sign in'}
+                </Button>
+              </Box>
+
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 3, textAlign: 'center' }}>
+                Don&apos;t have an account?{' '}
+                <Link component={RouterLink} to="/register" underline="hover">Create one here</Link>
+              </Typography>
+            </Box>
+          </Box>
+        </Paper>
+      </Container>
+    </Box>
+  );
 };
 
 export default LoginPage;

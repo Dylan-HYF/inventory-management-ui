@@ -1,238 +1,100 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-    Box,
-    Button,
-    Container,
-    TextField,
-    Typography,
-    Paper,
-    Avatar,
-    CssBaseline,
-    Alert,
-    CircularProgress,
-    Link
+  Alert,
+  Box,
+  Button,
+  CircularProgress,
+  Container,
+  Link,
+  Paper,
+  Stack,
+  TextField,
+  Typography
 } from '@mui/material';
-import PersonAddOutlinedIcon from '@mui/icons-material/PersonAddOutlined';
-import { useNavigate, Link as RouterLink } from 'react-router-dom';
+import { PersonAddAlt1Rounded } from '@mui/icons-material';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { authService } from '../services/authService';
 
 const RegisterPage = () => {
-    const navigate = useNavigate();
-    const [formData, setFormData] = useState({
-        username: '',
-        email: '',
-        password: '',
-        confirmPassword: ''
-    });
-    const [errors, setErrors] = useState({});
-    const [submitError, setSubmitError] = useState('');
-    const [success, setSuccess] = useState('');
-    const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState({ username: '', email: '', password: '', confirmPassword: '' });
+  const [errors, setErrors] = useState({});
+  const [submitError, setSubmitError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [loading, setLoading] = useState(false);
 
-    const validateForm = () => {
-        const newErrors = {};
+  useEffect(() => {
+    if (authService.isAuthenticated()) navigate('/dashboard');
+  }, [navigate]);
 
-        if (formData.username.length < 3) {
-            newErrors.username = 'Username must be at least 3 characters';
-        } else if (formData.username.length > 20) {
-            newErrors.username = 'Username must be less than 20 characters';
-        }
+  const handleChange = (e) => {
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    setErrors((prev) => ({ ...prev, [e.target.name]: '' }));
+    setSubmitError('');
+  };
 
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(formData.email)) {
-            newErrors.email = 'Please enter a valid email address';
-        }
+  const validateForm = () => {
+    const next = {};
+    if (formData.username.trim().length < 3) next.username = 'Username must be at least 3 characters';
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) next.email = 'Enter a valid email address';
+    if (formData.password.length < 6) next.password = 'Password must be at least 6 characters';
+    if (formData.password !== formData.confirmPassword) next.confirmPassword = 'Passwords do not match';
+    setErrors(next);
+    return Object.keys(next).length === 0;
+  };
 
-        if (formData.password.length < 6) {
-            newErrors.password = 'Password must be at least 6 characters';
-        }
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    if (!validateForm()) return;
+    setLoading(true);
+    setSubmitError('');
+    setSuccess('');
+    try {
+      const response = await authService.register({ username: formData.username, email: formData.email, password: formData.password });
+      setSuccess(response.message || 'Registration successful. Redirecting to login...');
+      setTimeout(() => navigate('/login'), 1200);
+    } catch (err) {
+      setSubmitError(err.message || 'Registration failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-        if (formData.password !== formData.confirmPassword) {
-            newErrors.confirmPassword = 'Passwords do not match';
-        }
-
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
-    };
-
-    const handleChange = (e) => {
-        setFormData({
-            ...formData,
-            [e.target.name]: e.target.value
-        });
-        if (errors[e.target.name]) {
-            setErrors({
-                ...errors,
-                [e.target.name]: ''
-            });
-        }
-        setSubmitError('');
-    };
-
-    const handleSubmit = async (event) => {
-        event.preventDefault();
-        setSubmitError('');
-        setSuccess('');
-        
-        if (!validateForm()) {
-            return;
-        }
-
-        setLoading(true);
-
-        try {
-            const userData = {
-                username: formData.username,
-                email: formData.email,
-                password: formData.password
-                // Note: roles intentionally omitted - backend assigns ROLE_USER
-            };
-
-            const response = await authService.register(userData);
-            
-            setSuccess(response.message || 'Registration successful! Redirecting to login...');
-            
-            setTimeout(() => {
-                navigate('/login');
-            }, 2000);
-            
-        } catch (err) {
-            setSubmitError(err.message || 'Registration failed. Please try again.');
-            console.error('Registration error:', err);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    React.useEffect(() => {
-        if (authService.isAuthenticated()) {
-            navigate('/dashboard');
-        }
-    }, [navigate]);
-
-    return (
-        <Container component="main" maxWidth="xs">
-            <CssBaseline />
-            <Box
-                sx={{
-                    marginTop: 8,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                }}
-            >
-                <Paper
-                    elevation={3}
-                    sx={{
-                        padding: 4,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        width: '100%'
-                    }}
-                >
-                    <Avatar sx={{ m: 1, bgcolor: 'secondary.main' }}>
-                        <PersonAddOutlinedIcon />
-                    </Avatar>
-                    <Typography component="h1" variant="h5">
-                        Sign Up
-                    </Typography>
-                    
-                    {submitError && (
-                        <Alert severity="error" sx={{ mt: 2, width: '100%' }}>
-                            {submitError}
-                        </Alert>
-                    )}
-                    
-                    {success && (
-                        <Alert severity="success" sx={{ mt: 2, width: '100%' }}>
-                            {success}
-                        </Alert>
-                    )}
-                    
-                    <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1, width: '100%' }}>
-                        <TextField
-                            margin="normal"
-                            required
-                            fullWidth
-                            id="username"
-                            label="Username"
-                            name="username"
-                            autoComplete="username"
-                            autoFocus
-                            value={formData.username}
-                            onChange={handleChange}
-                            disabled={loading}
-                            error={!!errors.username}
-                            helperText={errors.username}
-                        />
-                        <TextField
-                            margin="normal"
-                            required
-                            fullWidth
-                            id="email"
-                            label="Email Address"
-                            name="email"
-                            autoComplete="email"
-                            value={formData.email}
-                            onChange={handleChange}
-                            disabled={loading}
-                            error={!!errors.email}
-                            helperText={errors.email}
-                        />
-                        <TextField
-                            margin="normal"
-                            required
-                            fullWidth
-                            name="password"
-                            label="Password"
-                            type="password"
-                            id="password"
-                            autoComplete="new-password"
-                            value={formData.password}
-                            onChange={handleChange}
-                            disabled={loading}
-                            error={!!errors.password}
-                            helperText={errors.password}
-                        />
-                        <TextField
-                            margin="normal"
-                            required
-                            fullWidth
-                            name="confirmPassword"
-                            label="Confirm Password"
-                            type="password"
-                            id="confirmPassword"
-                            autoComplete="new-password"
-                            value={formData.confirmPassword}
-                            onChange={handleChange}
-                            disabled={loading}
-                            error={!!errors.confirmPassword}
-                            helperText={errors.confirmPassword}
-                        />
-                        <Button
-                            type="submit"
-                            fullWidth
-                            variant="contained"
-                            sx={{ mt: 3, mb: 2 }}
-                            disabled={loading}
-                        >
-                            {loading ? <CircularProgress size={24} /> : 'Sign Up'}
-                        </Button>
-                        
-                        <Box sx={{ textAlign: 'center', mt: 2 }}>
-                            <Typography variant="body2" color="text.secondary">
-                                Already have an account?{' '}
-                                <Link component={RouterLink} to="/login" underline="hover">
-                                    Sign in here
-                                </Link>
-                            </Typography>
-                        </Box>
-                    </Box>
-                </Paper>
+  return (
+    <Box sx={{ minHeight: '100vh', display: 'grid', placeItems: 'center', px: 2 }}>
+      <Container maxWidth="sm">
+        <Paper sx={{ p: { xs: 4, md: 5 }, borderRadius: 6 }}>
+          <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 3 }}>
+            <Box sx={{ width: 48, height: 48, borderRadius: 3, bgcolor: 'secondary.main', color: 'white', display: 'grid', placeItems: 'center' }}>
+              <PersonAddAlt1Rounded />
             </Box>
-        </Container>
-    );
+            <Box>
+              <Typography variant="h4">Create account</Typography>
+              <Typography color="text.secondary">Set up access to the inventory workspace.</Typography>
+            </Box>
+          </Stack>
+
+          {submitError ? <Alert severity="error" sx={{ mb: 2 }}>{submitError}</Alert> : null}
+          {success ? <Alert severity="success" sx={{ mb: 2 }}>{success}</Alert> : null}
+
+          <Box component="form" onSubmit={handleSubmit}>
+            <TextField label="Username" name="username" fullWidth margin="normal" value={formData.username} onChange={handleChange} error={!!errors.username} helperText={errors.username} />
+            <TextField label="Email" name="email" fullWidth margin="normal" value={formData.email} onChange={handleChange} error={!!errors.email} helperText={errors.email} />
+            <TextField label="Password" name="password" type="password" fullWidth margin="normal" value={formData.password} onChange={handleChange} error={!!errors.password} helperText={errors.password} />
+            <TextField label="Confirm password" name="confirmPassword" type="password" fullWidth margin="normal" value={formData.confirmPassword} onChange={handleChange} error={!!errors.confirmPassword} helperText={errors.confirmPassword} />
+            <Button type="submit" variant="contained" fullWidth size="large" sx={{ mt: 3, height: 52 }} disabled={loading}>
+              {loading ? <CircularProgress size={24} color="inherit" /> : 'Create account'}
+            </Button>
+          </Box>
+
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 3, textAlign: 'center' }}>
+            Already have an account?{' '}
+            <Link component={RouterLink} to="/login" underline="hover">Sign in</Link>
+          </Typography>
+        </Paper>
+      </Container>
+    </Box>
+  );
 };
 
 export default RegisterPage;

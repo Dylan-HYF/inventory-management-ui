@@ -1,95 +1,42 @@
 import React from 'react';
-import { Paper, Typography, Divider, Box, useTheme, alpha } from '@mui/material';
-import { TrendingUp } from '@mui/icons-material';
+import { Box, Paper, Stack, Typography } from '@mui/material';
+
+const money = (value) => `$${Number(value || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 const InventoryValueSummary = ({ cost, retail }) => {
-    const theme = useTheme();
-    const profit = retail - cost;
-    const profitMargin = (profit / retail) * 100;
+  const profit = retail - cost;
+  const margin = retail ? ((profit / retail) * 100) : 0;
 
-    return (
-        <Paper sx={{
-            p: 3,
-            backgroundColor: theme.palette.background.paper,
-            borderLeft: `4px solid ${theme.palette.primary.main}`,
-            minHeight: 240,
-        }}>
-            <Typography variant="h6" color="text.primary" gutterBottom fontWeight="bold">
-                Inventory Value Summary
-            </Typography>
-            <Divider sx={{ mb: 3 }} />
+  return (
+    <Paper sx={{ p: 3, height: '100%' }}>
+      <Typography variant="h6" gutterBottom>Inventory value summary</Typography>
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+        Quick financial snapshot of current stock on hand.
+      </Typography>
 
-            <Box display="flex" justifyContent="space-around" alignItems="center" flexWrap="wrap" gap={2}>
-                <Box textAlign="center" flex={1}>
-                    <Typography variant="body2" color="text.secondary" gutterBottom>
-                        Cost Value
-                    </Typography>
-                    <Typography
-                        variant="h4"
-                        sx={{
-                            color: theme.palette.text.primary,
-                            fontWeight: 600,
-                        }}
-                    >
-                        ${cost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </Typography>
-                </Box>
+      <Stack spacing={2.5}>
+        <Box sx={{ p: 2.5, borderRadius: 4, bgcolor: 'action.hover' }}>
+          <Typography variant="body2" color="text.secondary">Cost value</Typography>
+          <Typography variant="h4">{money(cost)}</Typography>
+        </Box>
+        <Box sx={{ p: 2.5, borderRadius: 4, bgcolor: 'success.main', color: 'success.contrastText' }}>
+          <Typography variant="body2" sx={{ opacity: 0.85 }}>Retail value</Typography>
+          <Typography variant="h4">{money(retail)}</Typography>
+        </Box>
+      </Stack>
 
-                <Box
-                    sx={{
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        width: 60,
-                        height: 60,
-                        borderRadius: '50%',
-                        backgroundColor: alpha(theme.palette.primary.main, 0.1),
-                        color: theme.palette.primary.main,
-                    }}
-                >
-                    <TrendingUp sx={{ fontSize: 32 }} />
-                </Box>
-
-                <Box textAlign="center" flex={1}>
-                    <Typography variant="body2" color="text.secondary" gutterBottom>
-                        Retail Value
-                    </Typography>
-                    <Typography
-                        variant="h4"
-                        sx={{
-                            color: theme.palette.success.main,
-                            fontWeight: 600,
-                        }}
-                    >
-                        ${retail.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </Typography>
-                </Box>
-            </Box>
-
-            <Box sx={{
-                mt: 3,
-                pt: 2,
-                textAlign: 'center',
-                borderTop: `1px solid ${theme.palette.divider}`,
-            }}>
-                <Typography variant="body1" color="text.secondary" gutterBottom>
-                    Potential Profit
-                </Typography>
-                <Typography
-                    variant="h5"
-                    sx={{
-                        color: profit >= 0 ? theme.palette.success.main : theme.palette.error.main,
-                        fontWeight: 600,
-                    }}
-                >
-                    ${profit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                    Profit Margin: {profitMargin.toFixed(2)}%
-                </Typography>
-            </Box>
-        </Paper>
-    );
+      <Box sx={{ mt: 3, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
+        <Box>
+          <Typography variant="body2" color="text.secondary">Potential profit</Typography>
+          <Typography variant="h6" color={profit >= 0 ? 'success.main' : 'error.main'}>{money(profit)}</Typography>
+        </Box>
+        <Box>
+          <Typography variant="body2" color="text.secondary">Margin</Typography>
+          <Typography variant="h6">{margin.toFixed(1)}%</Typography>
+        </Box>
+      </Box>
+    </Paper>
+  );
 };
 
 export default InventoryValueSummary;

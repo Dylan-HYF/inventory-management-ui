@@ -1,77 +1,37 @@
 import React from 'react';
-import { Paper, Typography, Divider, Grid, Button, useTheme, alpha } from '@mui/material';
-import { Add, LocalShipping, Receipt, Adjust } from '@mui/icons-material';
+import { Box, Button, Grid, Paper, Stack, Typography } from '@mui/material';
+import { AddRounded, EditRounded, LocalShippingRounded, ReceiptLongRounded } from '@mui/icons-material';
 
-const QuickActions = ({ onActionClick }) => {
-    const theme = useTheme();
-    
-    const actions = [
-        { name: 'Add Product', icon: <Add />, color: 'primary' },
-        { name: 'Receive Stock', icon: <LocalShipping />, color: 'success' },
-        { name: 'Create PO', icon: <Receipt />, color: 'warning' },
-        { name: 'Adjust Inventory', icon: <Adjust />, color: 'info' }
-    ];
+const actions = [
+  { name: 'Add Product', icon: <AddRounded />, color: 'primary.main', text: 'Create a new SKU quickly' },
+  { name: 'Receive Stock', icon: <LocalShippingRounded />, color: 'success.main', text: 'Record delivered inventory' },
+  { name: 'Create PO', icon: <ReceiptLongRounded />, color: 'warning.main', text: 'Draft a new purchase order' },
+  { name: 'Adjust Inventory', icon: <EditRounded />, color: 'info.main', text: 'Fix counts and corrections' }
+];
 
-    const getButtonStyle = (colorName) => {
-        const getColor = () => {
-            switch (colorName) {
-                case 'primary': return theme.palette.primary.main;
-                case 'success': return theme.palette.success.main;
-                case 'warning': return theme.palette.warning.main;
-                case 'info': return theme.palette.info.main;
-                default: return theme.palette.primary.main;
-            }
-        };
-        
-        const mainColor = getColor();
-        
-        return {
-            backgroundColor: alpha(mainColor, 0.1),
-            color: mainColor,
-            border: `1px solid ${alpha(mainColor, 0.3)}`,
-            '&:hover': {
-                backgroundColor: alpha(mainColor, 0.2),
-                border: `1px solid ${mainColor}`,
-                transform: 'translateY(-2px)',
-            }
-        };
-    };
+const QuickActions = ({ onActionClick }) => (
+  <Paper sx={{ p: 3, height: '100%' }}>
+    <Typography variant="h6" gutterBottom>Quick actions</Typography>
+    <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+      Shortcuts for the most common inventory tasks.
+    </Typography>
 
-    return (
-        <Paper sx={{ 
-            p: 3,
-            backgroundColor: theme.palette.background.paper,
-            borderLeft: `4px solid ${theme.palette.primary.main}`,
-        }}>
-            <Typography variant="h6" color="text.primary" gutterBottom fontWeight="bold">
-                Quick Actions
-            </Typography>
-            <Divider sx={{ mb: 2 }} />
-            <Grid container spacing={2}>
-                {actions.map((action) => (
-                    <Grid item xs={6} sm={3} key={action.name}>
-                        <Button
-                            fullWidth
-                            variant="outlined"
-                            startIcon={action.icon}
-                            onClick={() => onActionClick(action.name)}
-                            sx={{ 
-                                height: 80, 
-                                flexDirection: 'column',
-                                textTransform: 'none',
-                                fontWeight: 600,
-                                fontSize: '0.875rem',
-                                ...getButtonStyle(action.color),
-                                transition: 'all 0.2s ease-in-out',
-                            }}
-                        >
-                            {action.name}
-                        </Button>
-                    </Grid>
-                ))}
-            </Grid>
-        </Paper>
-    );
-};
+    <Grid container spacing={2}>
+      {actions.map((action) => (
+        <Grid item xs={12} sm={6} key={action.name}>
+          <Button onClick={() => onActionClick(action.name)} variant="outlined" fullWidth sx={{ justifyContent: 'flex-start', textAlign: 'left', p: 2, borderRadius: 4, minHeight: 96 }}>
+            <Stack direction="row" spacing={2} alignItems="center">
+              <Box sx={{ width: 44, height: 44, borderRadius: 3, bgcolor: `${action.color}`, color: '#fff', display: 'grid', placeItems: 'center' }}>{action.icon}</Box>
+              <Box>
+                <Typography fontWeight={700}>{action.name}</Typography>
+                <Typography variant="body2" color="text.secondary">{action.text}</Typography>
+              </Box>
+            </Stack>
+          </Button>
+        </Grid>
+      ))}
+    </Grid>
+  </Paper>
+);
 
 export default QuickActions;

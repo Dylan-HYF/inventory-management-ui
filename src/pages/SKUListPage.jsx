@@ -1,131 +1,212 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
-    Box,
-    Typography,
-    Table,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TableHead,
-    TableRow,
-    Paper,
-    Chip,
-    Button
+  Box,
+  Chip,
+  InputAdornment,
+  MenuItem,
+  Paper,
+  Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TextField,
+  Typography,
+  Button
 } from '@mui/material';
-import AdjustIcon from '@mui/icons-material/Edit';
-import VisibilityIcon from '@mui/icons-material/Visibility';
-import { useNavigate } from 'react-router-dom';
+import { SearchRounded, VisibilityRounded } from '@mui/icons-material';
+import { useLocation, useNavigate } from 'react-router-dom';
+import AppShell from '../components/layout/AppShell';
+import { inventoryAPI } from '../services/inventoryApi';
+import { MOCK_PRODUCTS } from '../data/mockData';
 
-import AdjustInventoryDialog from '../components/dashboard/dialogs/AdjustInventoryDialog';
+const statusColor = (status) => {
+  const s = String(status).toLowerCase();
+  if (s.includes('out')) return 'error';
+  if (s.includes('low') || s.includes('critical')) return 'warning';
+  return 'success';
+};
 
-const SKU_DATA = [
-    { sku: 'MZ-CX50-001', name: 'Mazda CX-50 Wiper Blades', category: 'Automotive', stock: 15, status: 'In Stock' },
-    { sku: 'PS5-CTRL-WHT', name: 'DualSense Wireless Controller', category: 'Gaming', stock: 8, status: 'Low Stock' },
-    { sku: 'SNOW-YES-TYP', name: 'Yes Typo Snowboard 155', category: 'Sports', stock: 3, status: 'Low Stock' },
-    { sku: 'BOOK-BT-PHO', name: 'Burton Photon Boots', category: 'Sports', stock: 0, status: 'Out of Stock' },
-    { sku: 'APP-D14-ULT', name: 'Diablo IV Ultimate Edition', category: 'Gaming', stock: 100, status: 'Digital' },
-];
+const normalizeStatus = (row) => {
+  const stock = row.currentStock ?? row.stock ?? row.quantity ?? 0;
+  const reorderPoint = row.reorderPoint ?? 0;
 
-const getStatusColor = (status) => {
-    switch (status) {
-        case 'In Stock': return 'success';
-        case 'Low Stock': return 'warning';
-        case 'Out of Stock': return 'error';
-        case 'Digital': return 'info';
-        default: return 'default';
-    }
+  if (stock === 0) return 'Out of Stock';
+  if (stock <= Math.max(1, Math.floor(reorderPoint / 2))) return 'Critical';
+  if (stock <= reorderPoint) return 'Low Stock';
+  return 'In Stock';
 };
 
 const SKUListPage = () => {
-    const [selectedSku, setSelectedSku] = useState(null);
-    const [isDialogOpen, setIsDialogOpen] = useState(false);
-    const navigate = useNavigate();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [rows, setRows] = useState(MOCK_PRODUCTS);
+  const [query, setQuery] = useState('');
+  const [status, setStatus] = useState('All');
 
-    const handleAdjustStock = (item) => {
-        setSelectedSku(item);
-        setIsDialogOpen(true);
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const urlStatus = params.get('status');
+    if (urlStatus) setStatus(urlStatus);
+  }, [location.search]);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const response = await inventoryAPI.getProducts();
+        setRows(response.data?.length ? response.data : MOCK_PRODUCTS);
+      } catch {
+        setRows(MOCK_PRODUCTS);
+      }
     };
+    load();
+  }, []);
 
-    return (
-        <Box sx={{ p: 3 }}>
-            <Typography variant="h4" component="h2" gutterBottom sx={{ fontWeight: 'bold', mb: 3 }}>
-                Inventory SKU List
-            </Typography>
+  const normalizedRows = useMemo(
+    () =>
+      rows.map((row) => ({
+        ...row,
+        currentStock: row.currentStock ?? row.stock ?? row.quantity ?? 0,
+        reorderPoint: row.reorderPoint ?? 0,
+        status: normalizeStatus(row)
+      })),
+    [rows]
+  );
 
-            <TableContainer component={Paper} elevation={3} sx={{ borderRadius: 2 }}>
-                <Table sx={{ minWidth: 650 }} aria-label="sku inventory table">
-                    <TableHead sx={{ backgroundColor: 'background.default' }}>
-                        <TableRow>
-                            <TableCell sx={{ fontWeight: 'bold' }}>SKU</TableCell>
-                            <TableCell sx={{ fontWeight: 'bold' }}>Product Name</TableCell>
-                            <TableCell sx={{ fontWeight: 'bold' }}>Category</TableCell>
-                            <TableCell align="center" sx={{ fontWeight: 'bold' }}>Stock Level</TableCell>
-                            <TableCell align="center" sx={{ fontWeight: 'bold' }}>Status</TableCell>
-                            <TableCell align="center" sx={{ fontWeight: 'bold' }}>Actions</TableCell>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {SKU_DATA.map((item) => (
-                            <TableRow
-                                key={item.sku}
-                                sx={{ '&:last-child td, &:last-child th': { border: 0 }, '&:hover': { backgroundColor: 'action.hover' } }}
-                            >
-                                <TableCell component="th" scope="row" sx={{ fontFamily: 'monospace', fontWeight: 'medium' }}>
-                                    {item.sku}
-                                </TableCell>
-                                <TableCell>{item.name}</TableCell>
-                                <TableCell>{item.category}</TableCell>
-                                <TableCell align="center">
-                                    <Typography variant="body2" fontWeight={item.stock < 10 ? 'bold' : 'normal'} color={item.stock === 0 ? 'error.main' : 'text.primary'}>
-                                        {item.stock}
-                                    </Typography>
-                                </TableCell>
-                                <TableCell align="center">
-                                    <Chip
-                                        label={item.status}
-                                        color={getStatusColor(item.status)}
-                                        size="small"
-                                        variant={item.stock === 0 ? "filled" : "outlined"}
-                                    />
-                                </TableCell>
-                                <TableCell align="center">
-                                    <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center', flexWrap: 'wrap' }}>
-                                        <Button
-                                            variant="outlined"
-                                            size="small"
-                                            color="primary"
-                                            startIcon={<VisibilityIcon />}
-                                            onClick={() => navigate(`/skus/${item.sku}`)}
-                                        >
-                                            Details
-                                        </Button>
-                                        <Button
-                                            variant="contained"
-                                            size="small"
-                                            color="primary"
-                                            startIcon={<AdjustIcon />}
-                                            onClick={() => handleAdjustStock(item)}
-                                            disableElevation
-                                        >
-                                            Adjust
-                                        </Button>
-                                    </Box>
-                                </TableCell>
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-            </TableContainer>
+  const filteredRows = useMemo(
+    () =>
+      normalizedRows.filter((row) => {
+        const matchesQuery = `${row.sku} ${row.name} ${row.category} ${row.location || ''}`
+          .toLowerCase()
+          .includes(query.toLowerCase());
 
-            {isDialogOpen && (
-                <AdjustInventoryDialog
-                    open={isDialogOpen}
-                    onClose={() => setIsDialogOpen(false)}
-                    product={selectedSku}
-                />
-            )}
-        </Box>
-    );
+        let matchesStatus = true;
+
+        if (status === 'Low Stock') {
+          matchesStatus = row.status === 'Low Stock' || row.status === 'Critical';
+        } else if (status !== 'All') {
+          matchesStatus = row.status === status;
+        }
+
+        return matchesQuery && matchesStatus;
+      }),
+    [normalizedRows, query, status]
+  );
+
+  return (
+    <AppShell
+      title="Inventory SKUs"
+      subtitle="Search, filter, and review stock levels with cleaner table controls."
+    >
+      <Stack spacing={3}>
+        <Paper sx={{ p: 3, borderRadius: 3 }}>
+          <Stack
+            direction={{ xs: 'column', md: 'row' }}
+            spacing={2}
+            justifyContent="space-between"
+          >
+            <TextField
+              placeholder="Search by SKU, name, or category"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              sx={{ minWidth: { xs: '100%', md: 360 } }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchRounded />
+                  </InputAdornment>
+                )
+              }}
+            />
+
+            <TextField
+              select
+              label="Status"
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+              sx={{ minWidth: 220 }}
+            >
+              {['All', 'In Stock', 'Low Stock', 'Out of Stock', 'Critical'].map((option) => (
+                <MenuItem key={option} value={option}>
+                  {option}
+                </MenuItem>
+              ))}
+            </TextField>
+          </Stack>
+        </Paper>
+
+        <TableContainer
+          component={Paper}
+          sx={{
+            borderRadius: 3,
+            overflow: 'hidden'
+          }}
+        >
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>SKU</TableCell>
+                <TableCell>Product</TableCell>
+                <TableCell>Category</TableCell>
+                <TableCell align="center">Stock</TableCell>
+                <TableCell align="center">Reorder point</TableCell>
+                <TableCell align="center">Status</TableCell>
+                <TableCell align="right">Action</TableCell>
+              </TableRow>
+            </TableHead>
+
+            <TableBody>
+              {filteredRows.map((row) => (
+                <TableRow key={row.sku} hover>
+                  <TableCell sx={{ fontFamily: 'monospace', fontWeight: 700 }}>
+                    {row.sku}
+                  </TableCell>
+
+                  <TableCell>
+                    <Typography fontWeight={700}>{row.name}</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {row.location || 'Warehouse floor'}
+                    </Typography>
+                  </TableCell>
+
+                  <TableCell>{row.category}</TableCell>
+                  <TableCell align="center">{row.currentStock}</TableCell>
+                  <TableCell align="center">{row.reorderPoint}</TableCell>
+
+                  <TableCell align="center">
+                    <Chip
+                      label={row.status}
+                      color={statusColor(row.status)}
+                      size="small"
+                      variant="outlined"
+                    />
+                  </TableCell>
+
+                  <TableCell align="right">
+                    <Button
+                      variant="outlined"
+                      startIcon={<VisibilityRounded />}
+                      onClick={() => navigate(`/skus/${row.sku}`)}
+                    >
+                      Details
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+
+          {!filteredRows.length ? (
+            <Box sx={{ p: 4, textAlign: 'center' }}>
+              <Typography>No products match your filters.</Typography>
+            </Box>
+          ) : null}
+        </TableContainer>
+      </Stack>
+    </AppShell>
+  );
 };
 
 export default SKUListPage;
